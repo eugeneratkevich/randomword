@@ -45,7 +45,14 @@ class MainHandler(Handler):
     def get(self):
         output = ''
         wordsCount = Words.all(keys_only=True).count()
-        number = random.randint(1, wordsCount)
+        try:
+            without_number = int(self.request.get('n'))
+            if without_number > 1 and without_number*2 > wordsCount:
+                number = random.randint(1, without_number - 1)
+            else:
+                number = random.randint(without_number + 1, wordsCount)
+        except ValueError:
+            number = random.randint(1, wordsCount)
         q = db.GqlQuery("SELECT * FROM Words " +
                 "WHERE number = :number " +
                 "ORDER BY eng DESC", number = number)

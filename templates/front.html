@@ -3,8 +3,8 @@
 {% block content %}
 
   {% for word in oWordsList %}
-    <a id="eng" href="/">{{ word.eng | safe }}</a>
-    <a id="rus" href="/">{{ word.rus | safe }}</a>
+    <a id="eng" href="/?n={{word.number}}">{{ word.eng | safe }}</a>
+    <a id="rus" href="/?n={{word.number}}">{{ word.rus | safe }}</a>
   {% endfor %}
 
 
