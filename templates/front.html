@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+  {% for word in oWordsList %}
+    <a id="eng" href="/">{{ word.eng | safe }}</a>
+    <a id="rus" href="/">{{ word.rus | safe }}</a>
+  {% endfor %}
+
+
+{% endblock %}

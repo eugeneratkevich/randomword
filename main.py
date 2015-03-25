@@ -15,29 +15,42 @@
 # limitations under the License.
 #
 import webapp2
+from google.appengine.ext.webapp import template
 from google.appengine.ext import db
 import random
 import csv
+import jinja2
+import os
 
-htmlsource = "<!DOCTYPE html><html><head><title>Translate</title><style>a{text-decoration:none;color:#000;}</style></head><body>%(body)s</body></html>"
 
-class MainHandler(webapp2.RequestHandler):
+template_dir = os.path.join(os.path.dirname(__file__), 'templates')
+jinja_env = jinja2.Environment(loader=jinja2.FileSystemLoader(template_dir),
+                               autoescape=True)
+
+class Handler(webapp2.RequestHandler):
+    """This is the main Handler class that has all the common functions."""
+    def write(self, *a, **kw):
+        self.response.out.write(*a, **kw)
+
+
+    def render_str(self, template, **params):
+        t = jinja_env.get_template(template)
+        return t.render(params)
+
+    def render(self, template, **kw):
+        self.write(self.render_str(template, **kw))
+
+
+class MainHandler(Handler):
     def get(self):
-
         output = ''
-        oWordsCount = Words.all().count()
-        number = random.randint(1, oWordsCount)
+        wordsCount = Words.all(keys_only=True).count()
+        number = random.randint(1, wordsCount)
         q = db.GqlQuery("SELECT * FROM Words " +
                 "WHERE number = :number " +
                 "ORDER BY eng DESC", number = number)
         oWordsList = q.run(limit=1)
-        #'Hello world!\n' + str(q.count()) + '\n' + output
-
-        for contact in oWordsList:
-            output += '\n<a href="/" align="center"><h1>%s<h1>\n<h3>%s</h3></a>\n' % (contact.eng, contact.rus)
-
-        htmloutput = htmlsource % {'body': output}
-        self.response.write(htmloutput)
+        self.render('front.html', oWordsList = oWordsList)
 
 
 class UpdateHandler(webapp2.RequestHandler):
@@ -52,7 +65,6 @@ app = webapp2.WSGIApplication([
 ], debug=True)
 
 
-
 class Words(db.Model):
     number = db.IntegerProperty(required=True)
     eng = db.StringProperty(required=True)
@@ -63,7 +75,8 @@ def _getWordsList():
         reader = csv.reader(csvfile, delimiter=';', quotechar='"')
 
         query = Words.all(keys_only=True)
-        entries =query.fetch(1000)
+        count = query.count()
+        entries =query.fetch(count)
         db.delete(entries)
         counter = 0;
 
@@ -75,6 +88,5 @@ def _getWordsList():
                 rus =  u'%s' % row[1].decode('utf-8')
                 c = Words(number = counter, eng=eng, rus=rus)
                 c.put()
-
             except db.Error:
                 print db.Error.message
