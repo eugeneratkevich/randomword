@@ -5,7 +5,12 @@
   {% for word in oWordsList %}
     <a id="eng" href="/?n={{word.number}}">{{ word.eng | safe }}</a>
     <a id="rus" href="/?n={{word.number}}">{{ word.rus | safe }}</a>
+    <br>
+    <audio controls>
+        <source src="http://translate.google.by/translate_tts?ie=UTF-8&q={{ word.eng | safe }}&tl=en&total=1" type="audio/mpeg">
+        Your browser does not support the audio element.
+    </audio>
+    <!-- <iframe src="http://translate.google.by/translate_tts?ie=UTF-8&q={{ word.eng | safe }}&tl=en&total=1" width="300" height="100" border="0"></iframe> -->
   {% endfor %}
-
 
 {% endblock %}
