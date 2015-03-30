@@ -16,11 +16,11 @@
 #
 import webapp2
 from google.appengine.ext.webapp import template
-from google.appengine.ext import db
 import random
 import csv
 import jinja2
 import os
+from models import Words
 
 
 template_dir = os.path.join(os.path.dirname(__file__), 'templates')
@@ -44,19 +44,8 @@ class Handler(webapp2.RequestHandler):
 class MainHandler(Handler):
     def get(self):
         output = ''
-        wordsCount = Words.all(keys_only=True).count()
-        try:
-            without_number = int(self.request.get('n'))
-            if without_number > 1 and without_number*2 > wordsCount:
-                number = random.randint(1, without_number - 1)
-            else:
-                number = random.randint(without_number + 1, wordsCount)
-        except ValueError:
-            number = random.randint(1, wordsCount)
-        q = db.GqlQuery("SELECT * FROM Words " +
-                "WHERE number = :number " +
-                "ORDER BY eng DESC", number = number)
-        oWordsList = q.run(limit=1)
+        n = self.request.get('n')
+        oWordsList = Words.getRandomWord(n)
         self.render('front.html', oWordsList = oWordsList)
 
 
@@ -71,11 +60,6 @@ app = webapp2.WSGIApplication([
     ('/update', UpdateHandler),
 ], debug=True)
 
-
-class Words(db.Model):
-    number = db.IntegerProperty(required=True)
-    eng = db.StringProperty(required=True)
-    rus = db.StringProperty(required=True)
 
 def _getWordsList():
     with open('words.csv', 'rb') as csvfile:
