@@ -17,10 +17,9 @@
 import webapp2
 from google.appengine.ext.webapp import template
 import random
-import csv
 import jinja2
 import os
-from models import Words
+from models import Words, _updateVocabsList
 
 
 template_dir = os.path.join(os.path.dirname(__file__), 'templates')
@@ -51,7 +50,7 @@ class MainHandler(Handler):
 
 class UpdateHandler(webapp2.RequestHandler):
     def get(self):
-        _getWordsList()
+        _updateVocabsList()
         self.redirect('/')
 
 
@@ -60,24 +59,3 @@ app = webapp2.WSGIApplication([
     ('/update', UpdateHandler),
 ], debug=True)
 
-
-def _getWordsList():
-    with open('words.csv', 'rb') as csvfile:
-        reader = csv.reader(csvfile, delimiter=';', quotechar='"')
-
-        query = Words.all(keys_only=True)
-        count = query.count()
-        entries =query.fetch(count)
-        db.delete(entries)
-        counter = 0;
-
-        for row in reader:
-            print row
-            try:
-                counter = counter + 1
-                eng =  u'%s' % row[0]
-                rus =  u'%s' % row[1].decode('utf-8')
-                c = Words(number = counter, eng=eng, rus=rus)
-                c.put()
-            except db.Error:
-                print db.Error.message
